@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+set -eu
+
+# Convenience symlink: ~/.dotfiles -> chezmoi source dir
+TARGET="{{ .chezmoi.homeDir }}/.dotfiles"
+SOURCE="{{ .chezmoi.sourceDir }}"
+if [ ! -e "$TARGET" ]; then
+  ln -s "$SOURCE" "$TARGET"
+fi
+[ "{{ .chezmoi.os }}" = "darwin" ] || exit 0
+
+if ! command -v brew >/dev/null 2>&1; then
+  echo "brew not found. Install Homebrew first: https://brew.sh/"
+  exit 1
+fi
+
+cd "{{ .chezmoi.sourceDir }}"
+[ -f Brewfile ] || { echo "No Brewfile found; skipping brew bundle."; exit 0; }
+
+brew bundle --file Brewfile

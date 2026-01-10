@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Linear
+Comment=Linear (PWA via Chromium)
+Exec=chromium --app=https://linear.app --class=Linear --name=Linear
+Icon=linear
+Terminal=false
+Categories=Office;ProjectManagement;

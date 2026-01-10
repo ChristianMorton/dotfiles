@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+set -eu
+[ "{{ .chezmoi.os }}" = "linux" ] || exit 0
+
+# If an icon named 'linear' already exists in the theme, do nothing.
+# This script is best-effort and not required for functionality.
+if command -v bash >/dev/null 2>&1; then :; fi
+
+# If user has a writable icon dir, we can drop a generic SVG later; keep noop for now.
+exit 0

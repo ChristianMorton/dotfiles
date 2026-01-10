@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+set -eu
+[ "{{ .chezmoi.os }}" = "darwin" ] || exit 0
+
+cat <<'EOF'
+macOS Karabiner-Elements (Caps dual-role):
+1) Open Karabiner-Elements and grant Accessibility + Input Monitoring permissions.
+2) Karabiner → Complex Modifications → Add rule
+   Enable: "Caps Lock: tap Escape, hold left_command"
+The rule file is installed at:
+  ~/.config/karabiner/assets/complex_modifications/caps_tap_esc_hold_cmd.json
+EOF

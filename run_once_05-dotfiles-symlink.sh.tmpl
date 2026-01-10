@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+set -eu
+
+TARGET="{{ .chezmoi.homeDir }}/.dotfiles"
+SOURCE="{{ .chezmoi.sourceDir }}"
+
+# If user already has a directory/file at ~/.dotfiles, don't touch it.
+if [ -e "$TARGET" ] && [ ! -L "$TARGET" ]; then
+  exit 0
+fi
+
+# If the symlink already exists, done.
+if [ -L "$TARGET" ]; then
+  exit 0
+fi
+
+ln -s "$SOURCE" "$TARGET"

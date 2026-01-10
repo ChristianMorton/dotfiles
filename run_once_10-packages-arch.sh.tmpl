@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+set -eu
+
+# Convenience symlink: ~/.dotfiles -> chezmoi source dir
+TARGET="{{ .chezmoi.homeDir }}/.dotfiles"
+SOURCE="{{ .chezmoi.sourceDir }}"
+if [ ! -e "$TARGET" ]; then
+  ln -s "$SOURCE" "$TARGET"
+fi
+[ "{{ .chezmoi.os }}" = "linux" ] || exit 0
+
+if [ -r /etc/os-release ]; then . /etc/os-release; else echo "/etc/os-release not found"; exit 1; fi
+case "${ID_LIKE:-} ${ID:-}" in *arch*|*cachyos*) ;; *) echo "Not Arch-like; skipping pacman packages."; exit 0 ;; esac
+
+cd "{{ .chezmoi.sourceDir }}"
+LIST="packages/arch-pacman.txt"
+[ -f "$LIST" ] || { echo "No $LIST found; skipping."; exit 0; }
+
+sudo pacman -Syu --needed - < "$LIST"

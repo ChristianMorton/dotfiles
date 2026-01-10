@@ -1,0 +1,9 @@
+# Put AUR packages here (one per line).
+# Examples:
+# google-chrome
+# visual-studio-code-bin
+
+cursor-bin
+notion-app-electron
+chatgpt-desktop-bin
+# linear-cli  # optional; Linear desktop experience is via Chromium PWA

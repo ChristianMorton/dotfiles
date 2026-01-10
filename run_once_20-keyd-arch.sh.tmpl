@@ -1,0 +1,35 @@
+#!/usr/bin/env sh
+set -eu
+[ "{{ .chezmoi.os }}" = "linux" ] || exit 0
+command -v pacman >/dev/null 2>&1 || exit 0
+
+if ! command -v keyd >/dev/null 2>&1; then
+  echo "keyd not installed yet (expected from pacman list). Skipping keyd config."
+  exit 0
+fi
+
+CONF="/etc/keyd/default.conf"
+TMP="$(mktemp)"
+cat > "$TMP" <<'EOF'
+[ids]
+*
+
+[main]
+# Tap Caps -> Esc, Hold Caps -> Meta/Super
+capslock = overload(caps, esc)
+
+# While held, this layer behaves like Meta/Super (M)
+[caps:M]
+EOF
+
+if [ -f "$CONF" ] && cmp -s "$TMP" "$CONF"; then
+  rm -f "$TMP"
+else
+  sudo install -m 0644 "$TMP" "$CONF"
+  rm -f "$TMP"
+fi
+
+sudo systemctl enable --now keyd
+sudo systemctl restart keyd
+
+echo "keyd configured: tap Caps -> Esc, hold Caps -> Super"

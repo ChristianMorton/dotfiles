@@ -1,0 +1,38 @@
+#!/usr/bin/env sh
+set -eu
+[ "{{ .chezmoi.os }}" = "linux" ] || exit 0
+command -v pacman >/dev/null 2>&1 || exit 0
+
+if [ -r /etc/os-release ]; then . /etc/os-release; else exit 0; fi
+case "${ID_LIKE:-} ${ID:-}" in *arch*|*cachyos*) ;; *) exit 0 ;; esac
+
+cd "{{ .chezmoi.sourceDir }}"
+LIST="packages/arch-aur.txt"
+[ -f "$LIST" ] || exit 0
+
+# Strip comments/blank lines
+PKGS="$(grep -vE '^[[:space:]]*(#|$)' "$LIST" || true)"
+[ -n "$PKGS" ] || exit 0
+
+# Prefer paru; fall back to yay if user already has it.
+if command -v paru >/dev/null 2>&1; then
+  HELPER="paru"
+elif command -v yay >/dev/null 2>&1; then
+  HELPER="yay"
+else
+  # Try install paru from repos first.
+  if sudo pacman -S --needed --noconfirm paru; then
+    HELPER="paru"
+  else
+    echo "Could not install paru from repos. Install an AUR helper (paru or yay) and rerun: chezmoi apply"
+    exit 0
+  fi
+fi
+
+echo "Installing AUR packages with $HELPER:"
+echo "$PKGS"
+
+# Install each package (avoid weird stdin behavior)
+for p in $PKGS; do
+  "$HELPER" -S --needed --noconfirm "$p"
+done

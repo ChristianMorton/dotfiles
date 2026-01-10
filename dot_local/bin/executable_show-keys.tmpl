@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+set -eu
+
+CHEAT="{{ .chezmoi.homeDir }}/.config/keybinds/cheatsheet.txt"
+[ -f "$CHEAT" ] || { echo "Missing cheat sheet: $CHEAT"; exit 1; }
+
+case "{{ .chezmoi.os }}" in
+  darwin)
+    # Display in a dialog (works well enough for a quick overlay)
+    /usr/bin/osascript <<'APPLESCRIPT'
+set cheatPath to POSIX file (do shell script "printf %q " & "$CHEAT")
+set cheatText to do shell script "cat " & quoted form of POSIX path of cheatPath
+display dialog cheatText with title "Keybinds" buttons {"OK"} default button "OK"
+APPLESCRIPT
+    ;;
+  linux)
+    if command -v rofi >/dev/null 2>&1; then
+      rofi -e "$(cat "$CHEAT")"
+    else
+      # fallback: show in terminal
+      cat "$CHEAT"
+    fi
+    ;;
+  *)
+    cat "$CHEAT"
+    ;;
+esac

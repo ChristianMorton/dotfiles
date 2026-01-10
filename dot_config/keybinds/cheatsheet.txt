@@ -1,0 +1,22 @@
+ML4W Parity Keybinds (Caps = MOD)
+
+Focus:
+  Caps + H/J/K/L      → focus left/down/up/right
+
+Move window:
+  Caps + Shift + H/J/K/L → move left/down/up/right
+
+Workspaces:
+  Caps + 1..9         → switch workspace
+  Caps + Shift + 1..9 → move window to workspace
+
+Apps:
+  Caps + Enter        → kitty
+  Caps + D            → launcher (Alfred / rofi)
+  Caps + Q            → close window
+
+Help:
+  Caps + /            → show this overlay
+
+Seamless splits/panes:
+  Ctrl + H/J/K/L      → move between Neovim splits and tmux panes

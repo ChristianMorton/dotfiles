@@ -1,0 +1,29 @@
+#!/usr/bin/env sh
+set -eu
+[ "{{ .chezmoi.os }}" = "darwin" ] || exit 0
+
+# Ensure VS Code settings directory exists and link settings
+VSCODE_SETTINGS_DIR="${HOME}/Library/Application Support/Code/User"
+SOURCE_SETTINGS="{{ .chezmoi.sourceDir }}/dot_config/code/User/settings.json"
+
+if [ ! -f "$SOURCE_SETTINGS" ]; then
+  echo "ℹ️  VS Code settings file not found; skipping."
+  exit 0
+fi
+
+mkdir -p "$VSCODE_SETTINGS_DIR"
+
+# If settings.json already exists and is not a symlink, backup it
+if [ -f "${VSCODE_SETTINGS_DIR}/settings.json" ] && [ ! -L "${VSCODE_SETTINGS_DIR}/settings.json" ]; then
+  echo "⚠️  Existing VS Code settings.json found, backing up to settings.json.bak"
+  mv "${VSCODE_SETTINGS_DIR}/settings.json" "${VSCODE_SETTINGS_DIR}/settings.json.bak"
+fi
+
+# Create symlink if it doesn't exist
+if [ ! -L "${VSCODE_SETTINGS_DIR}/settings.json" ]; then
+  echo "➡️  Linking VS Code settings..."
+  ln -s "$SOURCE_SETTINGS" "${VSCODE_SETTINGS_DIR}/settings.json"
+  echo "✅ VS Code settings linked successfully"
+else
+  echo "✅ VS Code settings already linked"
+fi

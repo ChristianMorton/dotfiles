@@ -1,0 +1,29 @@
+#!/usr/bin/env sh
+set -eu
+[ "{{ .chezmoi.os }}" = "darwin" ] || exit 0
+
+# Ensure Cursor settings directory exists and link settings
+CURSOR_SETTINGS_DIR="${HOME}/Library/Application Support/Cursor/User"
+SOURCE_SETTINGS="{{ .chezmoi.sourceDir }}/dot_config/cursor/User/settings.json"
+
+if [ ! -f "$SOURCE_SETTINGS" ]; then
+  echo "ℹ️  Cursor settings file not found; skipping."
+  exit 0
+fi
+
+mkdir -p "$CURSOR_SETTINGS_DIR"
+
+# If settings.json already exists and is not a symlink, backup it
+if [ -f "${CURSOR_SETTINGS_DIR}/settings.json" ] && [ ! -L "${CURSOR_SETTINGS_DIR}/settings.json" ]; then
+  echo "⚠️  Existing Cursor settings.json found, backing up to settings.json.bak"
+  mv "${CURSOR_SETTINGS_DIR}/settings.json" "${CURSOR_SETTINGS_DIR}/settings.json.bak"
+fi
+
+# Create symlink if it doesn't exist
+if [ ! -L "${CURSOR_SETTINGS_DIR}/settings.json" ]; then
+  echo "➡️  Linking Cursor settings..."
+  ln -s "$SOURCE_SETTINGS" "${CURSOR_SETTINGS_DIR}/settings.json"
+  echo "✅ Cursor settings linked successfully"
+else
+  echo "✅ Cursor settings already linked"
+fi

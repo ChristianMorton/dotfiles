@@ -15,6 +15,19 @@ if ! command -v brew >/dev/null 2>&1; then
 fi
 
 cd "{{ .chezmoi.sourceDir }}"
-[ -f Brewfile ] || { echo "No Brewfile found; skipping brew bundle."; exit 0; }
 
-brew bundle --file Brewfile
+# Install base Brewfile first
+if [ -f Brewfile ]; then
+  echo "➡️  Installing base packages from Brewfile..."
+  brew bundle --file Brewfile --no-lock || brew bundle --file Brewfile
+else
+  echo "ℹ️  No Brewfile found; skipping base packages."
+fi
+
+# Install extra packages if Brewfile.extra exists
+if [ -f Brewfile.extra ]; then
+  echo "➡️  Installing extra packages from Brewfile.extra..."
+  brew bundle --file Brewfile.extra --no-lock || brew bundle --file Brewfile.extra
+else
+  echo "ℹ️  No Brewfile.extra found; skipping extra packages."
+fi

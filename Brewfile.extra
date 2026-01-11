@@ -1,0 +1,42 @@
+# Brewfile.extra
+# Extra packages/apps for personal macOS dev machine.
+# This file is automatically installed by run_once_10-packages-darwin.sh.tmpl
+# Edit this file to customize your personal packages.
+
+tap "homebrew/bundle"
+tap "homebrew/services"
+
+# -----------------------------------------
+# CLI / dev tooling
+# -----------------------------------------
+brew "gh"
+brew "fzf"
+brew "ripgrep"
+brew "fd"
+brew "jq"
+brew "bat"
+brew "lazygit"
+brew "glow"
+brew "zoxide"
+brew "direnv"
+
+# -----------------------------------------
+# Apps
+# -----------------------------------------
+cask "github"               # GitHub Desktop
+cask "discord"
+cask "cursor"
+cask "visual-studio-code"
+cask "arc"                  # Arc Browser
+cask "google-chrome"
+cask "nordvpn"
+cask "notion"
+cask "linear-linear"
+cask "chatgpt"
+cask "spotify"
+cask "monarch"               # Monarch productivity launcher
+
+# -----------------------------------------
+# File transfer
+# -----------------------------------------
+cask "cyberduck"

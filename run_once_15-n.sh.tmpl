@@ -1,0 +1,45 @@
+#!/usr/bin/env sh
+set -eu
+[ "{{ .chezmoi.os }}" = "darwin" ] || exit 0
+
+# Install n (Node.js version manager) if not already present
+# n requires sudo for installation, but manages Node.js versions without sudo
+
+if command -v n >/dev/null 2>&1; then
+  echo "✅ n: already installed"
+  exit 0
+fi
+
+echo "➡️  Installing n (Node.js version manager)..."
+echo "ℹ️  This will require sudo for the initial installation"
+
+# Install n using the official installer
+curl -L https://raw.githubusercontent.com/tj/n/master/bin/n -o /tmp/n
+chmod +x /tmp/n
+
+# Check if we can install without sudo (if /usr/local/n exists and is writable)
+if [ -w /usr/local ] 2>/dev/null || [ -w /opt/homebrew ] 2>/dev/null; then
+  # Try installing to a writable location
+  if [ -w /opt/homebrew ] 2>/dev/null; then
+    sudo mkdir -p /opt/homebrew/n
+    sudo /tmp/n lts
+  else
+    sudo /tmp/n lts
+  fi
+else
+  # Standard installation (requires sudo)
+  sudo /tmp/n lts
+fi
+
+# Clean up
+rm -f /tmp/n
+
+# Verify installation
+if command -v n >/dev/null 2>&1; then
+  echo "✅ n installed successfully"
+  echo "ℹ️  Use 'n' to manage Node.js versions: n lts, n latest, n <version>"
+else
+  echo "⚠️  n installation may have completed, but 'n' command not found in PATH."
+  echo "ℹ️  You may need to add /usr/local/bin or /opt/homebrew/bin to your PATH"
+  echo "ℹ️  Or restart your terminal"
+fi

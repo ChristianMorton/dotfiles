@@ -1,0 +1,63 @@
+#!/usr/bin/env sh
+set -eu
+[ "{{ .chezmoi.os }}" = "darwin" ] || exit 0
+
+# Start/restart services after installation
+# This script runs after packages are installed
+
+if ! command -v brew >/dev/null 2>&1; then
+  exit 0
+fi
+
+# Ensure homebrew/services tap is installed
+brew tap homebrew/services 2>/dev/null || true
+
+# Start services if they're installed
+# Note: Some services require manual permissions setup (see README)
+
+# skhd (Simple Hotkey Daemon)
+if brew list skhd >/dev/null 2>&1; then
+  echo "➡️  Starting skhd service..."
+  brew services restart skhd 2>/dev/null || brew services start skhd 2>/dev/null || true
+fi
+
+# sketchybar (Menu bar)
+if brew list sketchybar >/dev/null 2>&1; then
+  echo "➡️  Starting sketchybar service..."
+  brew services restart sketchybar 2>/dev/null || brew services start sketchybar 2>/dev/null || true
+fi
+
+# Amethyst (Window manager - GUI app, launch differently)
+if brew list --cask amethyst >/dev/null 2>&1; then
+  echo "➡️  Launching Amethyst (GUI app)..."
+  open -a Amethyst 2>/dev/null || true
+fi
+
+# Aerospace (Window manager - GUI app)
+if brew list --cask aerospace >/dev/null 2>&1; then
+  echo "➡️  Launching Aerospace (GUI app)..."
+  open -a Aerospace 2>/dev/null || true
+fi
+
+cat <<'EOF'
+
+⚠️  Manual setup required for some services:
+
+1) Accessibility permissions
+   System Settings → Privacy & Security → Accessibility
+   - Enable for: skhd, amethyst, aerospace (and terminal app if prompted)
+
+2) Secure Keyboard Entry
+   Disable "Secure Keyboard Entry" in your terminal app
+   (skhd cannot receive key events otherwise)
+
+3) SketchyBar requirement
+   System Settings → Desktop & Dock → "Displays have separate Spaces" = ON
+
+4) Window manager configuration
+   - Amethyst: Configure via menu bar icon → Preferences
+   - Aerospace: Configure via menu bar icon → Preferences
+
+After changing those settings, log out/in (or reboot) for changes to take effect.
+
+EOF

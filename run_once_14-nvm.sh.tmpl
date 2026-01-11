@@ -1,0 +1,40 @@
+#!/usr/bin/env sh
+set -eu
+[ "{{ .chezmoi.os }}" = "darwin" ] || exit 0
+
+# Install nvm (Node Version Manager) if not already present
+NVM_DIR="${HOME}/.nvm"
+
+if [ -d "$NVM_DIR" ]; then
+  echo "✅ nvm: already installed"
+  exit 0
+fi
+
+echo "➡️  Installing nvm (Node Version Manager)..."
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+
+# Source nvm to make it available in this script
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+# Verify installation
+if [ -s "$NVM_DIR/nvm.sh" ]; then
+  echo "✅ nvm installed successfully"
+  
+  # Source nvm again to ensure it's available
+  \. "$NVM_DIR/nvm.sh"
+  
+  # Install Node.js 20
+  echo "➡️  Installing Node.js 20 via nvm..."
+  if nvm install 20; then
+    nvm use 20
+    nvm alias default 20
+    echo "✅ Node.js 20 installed and set as default"
+  else
+    echo "⚠️  Failed to install Node.js 20. You can install it manually with:"
+    echo "    source ~/.nvm/nvm.sh && nvm install 20 && nvm alias default 20"
+  fi
+  echo "ℹ️  Note: You may need to restart your terminal or run: source ~/.zshrc"
+else
+  echo "⚠️  nvm installation completed, but verification failed. You may need to restart your terminal."
+fi

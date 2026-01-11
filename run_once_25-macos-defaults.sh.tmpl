@@ -1,0 +1,112 @@
+#!/usr/bin/env sh
+set -eu
+[ "{{ .chezmoi.os }}" = "darwin" ] || exit 0
+
+# macOS defaults script - applies developer-friendly macOS preferences
+# Safe to re-run. Tries hard not to fail the whole script if any single write fails.
+
+# Allow overrides via env vars:
+: "${KEY_REPEAT:=1}"          # faster repeat (lower = faster)
+: "${INITIAL_KEY_REPEAT:=10}" # delay until repeat (lower = faster)
+: "${SCREENSHOTS_DIR:=${HOME}/Screenshots}"
+
+log() { printf "%s\n" "$*"; }
+warn() { printf "⚠️  %s\n" "$*" >&2; }
+
+run() {
+    # Usage: run "Description" command args...
+    local desc="$1"
+    shift
+    printf "• %s\n" "$desc"
+    if "$@" >/dev/null 2>&1; then
+        return 0
+    else
+        warn "Failed (ignored): $desc"
+        return 0
+    fi
+}
+
+log "🛠  Applying macOS defaults (developer-friendly)…"
+log "   Screenshots dir: ${SCREENSHOTS_DIR}"
+log "   KeyRepeat=${KEY_REPEAT}, InitialKeyRepeat=${INITIAL_KEY_REPEAT}"
+
+# Close System Settings/Preferences so it doesn't overwrite our changes mid-flight.
+run "Close System Settings (if open)" osascript -e 'tell application "System Settings" to quit' || true
+run "Close System Preferences (if open)" osascript -e 'tell application "System Preferences" to quit' || true
+
+#
+# Global UI / dialogs
+#
+run "Expand Save dialog by default" defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
+run "Expand Save dialog by default (mode2)" defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool true
+run "Expand Print dialog by default" defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
+run "Expand Print dialog by default (mode2)" defaults write NSGlobalDomain PMPrintingExpandedStateForPrint2 -bool true
+run "Save new documents to disk (not iCloud) by default" defaults write NSGlobalDomain NSDocumentSaveNewDocumentsToCloud -bool false
+
+#
+# Typing behavior (coding-friendly)
+#
+run "Disable smart capitalization" defaults write NSGlobalDomain NSAutomaticCapitalizationEnabled -bool false
+run "Disable smart dashes" defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
+run "Disable automatic period substitution" defaults write NSGlobalDomain NSAutomaticPeriodSubstitutionEnabled -bool false
+run "Disable smart quotes" defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
+run "Disable auto-correct" defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
+
+#
+# Keyboard repeat behavior
+#
+run "Prefer key repeat over accent popup" defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
+run "Set fast key repeat rate" defaults write NSGlobalDomain KeyRepeat -int "${KEY_REPEAT}"
+run "Set repeat delay" defaults write NSGlobalDomain InitialKeyRepeat -int "${INITIAL_KEY_REPEAT}"
+
+#
+# Finder
+#
+run "Show all filename extensions" defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+run "Show hidden files in Finder" defaults write com.apple.finder AppleShowAllFiles -bool true
+run "Show Finder path bar" defaults write com.apple.finder ShowPathbar -bool true
+run "Show Finder status bar" defaults write com.apple.finder ShowStatusBar -bool true
+run "Keep folders on top when sorting by name" defaults write com.apple.finder _FXSortFoldersFirst -bool true
+run "Finder search defaults to current folder" defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
+run "Disable warning when changing a file extension" defaults write com.apple.finder FXEnableExtensionChangeWarning -bool false
+run "Show full POSIX path in Finder title" defaults write com.apple.finder _FXShowPosixPathInTitle -bool true
+run "Set default Finder view style to List view" defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
+
+#
+# Dock + Mission Control
+#
+run "Autohide Dock" defaults write com.apple.dock autohide -bool true
+run "Remove Dock autohide delay" defaults write com.apple.dock autohide-delay -float 0
+run "Speed up Dock autohide animation" defaults write com.apple.dock autohide-time-modifier -float 0.1
+run "Hide 'recent apps' section in Dock" defaults write com.apple.dock show-recents -bool false
+run "Minimize windows into application icon" defaults write com.apple.dock minimize-to-application -bool true
+run "Don't automatically rearrange Spaces" defaults write com.apple.dock mru-spaces -bool false
+
+#
+# Screenshots
+#
+run "Create screenshots directory" mkdir -p "${SCREENSHOTS_DIR}"
+run "Set screenshot location" defaults write com.apple.screencapture location -string "${SCREENSHOTS_DIR}"
+run "Set screenshot format to PNG" defaults write com.apple.screencapture type -string "png"
+run "Disable screenshot shadow" defaults write com.apple.screencapture "disable-shadow" -bool true
+
+#
+# File system hygiene
+#
+run "Avoid creating .DS_Store on network volumes" defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
+run "Avoid creating .DS_Store on USB volumes" defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
+
+#
+# Security
+#
+run "Require password immediately after sleep/screensaver" defaults write com.apple.screensaver askForPassword -int 1
+run "No grace period for password after sleep/screensaver" defaults write com.apple.screensaver askForPasswordDelay -int 0
+
+log "🔄 Restarting affected services (Finder, Dock, SystemUIServer)…"
+killall Finder >/dev/null 2>&1 || true
+killall Dock >/dev/null 2>&1 || true
+killall SystemUIServer >/dev/null 2>&1 || true
+killall cfprefsd >/dev/null 2>&1 || true
+
+log "✅ macOS defaults applied."
+log "ℹ️  Some changes may require logout/restart to fully apply (especially key repeat)."

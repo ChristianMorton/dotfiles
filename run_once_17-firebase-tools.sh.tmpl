@@ -1,0 +1,36 @@
+#!/usr/bin/env sh
+set -eu
+[ "{{ .chezmoi.os }}" = "darwin" ] || exit 0
+
+# Install firebase-tools globally via npm
+# This requires Node.js to be installed first (via nvm or n)
+
+if command -v firebase >/dev/null 2>&1; then
+  echo "✅ firebase-tools: already installed ($(firebase --version 2>/dev/null | head -n1 || echo 'installed'))"
+  exit 0
+fi
+
+# Check for Node.js
+if ! command -v node >/dev/null 2>&1; then
+  echo "⚠️  Node.js not found. firebase-tools requires Node.js."
+  echo "ℹ️  Node.js should be installed by nvm or n scripts. Please run:"
+  echo "    chezmoi apply --force"
+  echo "    Or install Node.js manually, then re-run this script"
+  exit 0
+fi
+
+NODE_VERSION=$(node --version 2>/dev/null || echo "unknown")
+echo "➡️  Installing firebase-tools (Node.js ${NODE_VERSION})..."
+
+# Install firebase-tools globally
+if npm install -g firebase-tools; then
+  echo "✅ firebase-tools installed successfully"
+  echo "ℹ️  Use 'firebase' command to manage Firebase projects"
+  echo "    firebase login        # Authenticate"
+  echo "    firebase init         # Initialize a Firebase project"
+  echo "    firebase deploy       # Deploy to Firebase"
+else
+  echo "⚠️  firebase-tools installation failed."
+  echo "ℹ️  You may need to check npm permissions or install manually:"
+  echo "    npm install -g firebase-tools"
+fi
